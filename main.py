@@ -1,34 +1,48 @@
 '''
+Multi-Modal Battleship Game Client
+-----------------------------------
+This is the main entry point for the battleship game client application.
 
 @author Maurice Amon
+@version 1.0
+@date March 2025
 '''
 
-# importing required libraries
+# ===== IMPORTS =====
+# standard library imports
+import sys
+import threading
+
+# QT Framework imports
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-import sys
-
-import threading
-
+# Speech command import
 from commands.speech.StartSpeechModuleCommand import StartSpeechModuleCommand
+
+# Application command import
+from commands.StartGameCommand import StartGameCommand
+
+# Application view imports
+from view.SocketConfigurationWindow import SocketConfigurationWindow
+from view.StartWindow import StartWindow
+
+# ===== APPLICATION INITIALIZATION =====
 
 #command = StartSpeechModuleCommand()
 #command.execute()
-
-
-
-from view.SocketConfigurationWindow import SocketConfigurationWindow
-from view.StartWindow import StartWindow
 
 # You need one (and only one) QApplication instance per application.
 # Pass in sys.argv to allow command line arguments for your app.
 # If you know you won't use command line arguments QApplication([]) works too.
 app = QApplication(sys.argv)
 
+# Initialize game command
+start_game_command = StartGameCommand()
+
 # Create a Qt widget, which will be our window.
-window = StartWindow()
+window = StartWindow(start_game_command)
 window.show()  # IMPORTANT!!!!! Windows are hidden by default.
 
 # Start the event loop.
