@@ -1,28 +1,79 @@
-class StartGameCommand:
-    def execute(self, request):
-        #simple print statement to test the execution
-        print(f"Game started for player: {request.get_playerID()}")
-        print(f"Message: {request.get_message()}")
+'''
+@author Alessia
+@description Command to handle starting a new game
+'''
+from commands.requests.StartGameRequest import StartGameRequest
+from view.GameWindow import GameWindow
 
-# class StartGameCommand:
-#     def __init__(self, game_service):
-#
-#         self._game_service = game_service
-#
-#     def execute(self, request):
-#         try:
-#             # Extract player ID from the request
-#             player_id = request.get_playerID()
-#
-#             # Use the game service to initialize the game
-#             game = self._game_service.initialize_game(player_id)
-#
-#             # Additional game start logic
-#             print(f"Game started for player: {player_id}")
-#
-#             return game
-#
-#         except Exception as e:
-#             # Handle any errors during game initialization
-#             print(f"Error starting game: {e}")
-#             raise
+
+class StartGameCommand:
+    """
+    Command to handle the StartGameRequest and initialize the game.
+    """
+
+    def __init__(self):
+        """
+        Initialize the StartGameCommand.
+        """
+        self._game_window = None
+        self._start_window = None
+
+    def set_start_window(self, window):
+        """
+        Set the reference to the start window that will be hidden when the game starts.
+
+        Args:
+            window: The start window instance
+        """
+        self._start_window = window
+
+    def execute(self, request: StartGameRequest):
+        """
+        Execute the start game command.
+
+        Args:
+            request: The StartGameRequest containing player information
+        """
+        print(f"Starting game for player {request.get_playerID()} with message: {request.get_message()}")
+
+        # Initialize the game window
+        self._game_window = GameWindow()
+
+        # Example grid initialization - this would come from your game logic or server
+        # For testing purposes we'll create a sample grid
+        example_player_grid = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+
+        # Empty opponent grid - since we don't know their ships yet
+        empty_opponent_grid = [[0 for _ in range(10)] for _ in range(10)]
+
+        # Update the grids
+        self._game_window.update_player_grid(example_player_grid)
+        self._game_window.update_opponent_grid(empty_opponent_grid)
+
+        # Hide the start window if it's set
+        if self._start_window:
+            self._start_window.hide()
+
+        # Show the game window
+        self._game_window.show()
+
+        # Here you would typically send a request to the server to initialize the game
+        # self._send_to_server(request)
+
+    def _send_to_server(self, request):
+        """
+        Send the start game request to the server.
+        This would be implemented based on your client-server communication protocol.
+        """
+        pass

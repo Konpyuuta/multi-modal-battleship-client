@@ -19,7 +19,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 # Speech command import
-from commands.speech.StartSpeechModuleCommand import StartSpeechModuleCommand
+# from commands.speech.StartSpeechModuleCommand import StartSpeechModuleCommand
 
 # Application command import
 from commands.StartGameCommand import StartGameCommand
@@ -43,6 +43,10 @@ start_game_command = StartGameCommand()
 
 # Create a Qt widget, which will be our window.
 window = StartWindow(start_game_command)
+
+# Set the start window reference in the command
+start_game_command.set_start_window(window)
+
 window.show()  # IMPORTANT!!!!! Windows are hidden by default.
 
 # Start the event loop.
