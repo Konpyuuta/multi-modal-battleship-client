@@ -1,6 +1,5 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLabel, QMainWindow, QVBoxLayout
-from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QPainterPath, QFont
 from PyQt5.QtCore import Qt, QRect, QRectF, QPointF, QSize
 from view.BattleshipCell import BattleshipCell
 

@@ -23,6 +23,8 @@ from PyQt5.QtCore import *
 
 # Application command import
 from commands.StartGameCommand import StartGameCommand
+from commands.requests.StartGameRequest import StartGameRequest
+from model.socket.SocketConnection import SocketConnection
 
 # Application view imports
 from view.SocketConfigurationWindow import SocketConfigurationWindow
@@ -36,18 +38,26 @@ from view.StartWindow import StartWindow
 # You need one (and only one) QApplication instance per application.
 # Pass in sys.argv to allow command line arguments for your app.
 # If you know you won't use command line arguments QApplication([]) works too.
+
+start_request = StartGameRequest("Kuroro", "START THE GAME !!")
+socket = SocketConnection("127.0.0.1", 8080)
+socket.connect()
+socket.send_request(start_request)
 app = QApplication(sys.argv)
+
 
 # Initialize game command
 start_game_command = StartGameCommand()
 
 # Create a Qt widget, which will be our window.
 window = StartWindow(start_game_command)
+window.show()  # IMPORTANT!!!!! Windows are hidden by default.
+
 
 # Set the start window reference in the command
 start_game_command.set_start_window(window)
+##start_game_command.execute()
 
-window.show()  # IMPORTANT!!!!! Windows are hidden by default.
 
 # Start the event loop.
 app.exec()
