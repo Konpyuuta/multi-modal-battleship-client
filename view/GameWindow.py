@@ -17,7 +17,7 @@ class GameWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Battleship Game")
+        self.setWindowTitle(ProjectConstants.PROJECT_NAME)
         self.resize(1200, 600)  # Adjust size as needed
 
         # Create main layout
@@ -28,9 +28,9 @@ class GameWindow(QMainWindow):
         player_section = QWidget()
         player_layout = QVBoxLayout(player_section)
 
-        player_label = QLabel("Your Ships")
+        player_label = QLabel(ProjectConstants.GAME_WINDOW_PLAYER_LABEL)
         player_label.setAlignment(Qt.AlignCenter)
-        player_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        player_label.setStyleSheet(ProjectConstants.GAME_WINDOW_LABELS_STYLE)
 
         # Initial empty grid for player
         self.player_grid = BattleshipGrid()
@@ -42,9 +42,9 @@ class GameWindow(QMainWindow):
         opponent_section = QWidget()
         opponent_layout = QVBoxLayout(opponent_section)
 
-        opponent_label = QLabel("Opponent's Waters")
+        opponent_label = QLabel(ProjectConstants.GAME_WINDOW_OPPONENT_LABEL)
         opponent_label.setAlignment(Qt.AlignCenter)
-        opponent_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        opponent_label.setStyleSheet(ProjectConstants.GAME_WINDOW_LABELS_STYLE)
 
         # Initial empty grid for opponent
         self.opponent_grid = BattleshipGrid()

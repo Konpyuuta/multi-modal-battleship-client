@@ -39,17 +39,17 @@ class StartGameCommand:
         # Initialize the game window
         self._game_window = GameWindow()
 
-        # Example grid initialization - this would come from your game logic or server
-        # For testing purposes we'll create a sample grid
+        # Example grid initialization - this would come from the server
+        # For testing purposes I've created a sample grid
         example_player_grid = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 2, 0, 0, 0, 0, 1, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 0, -1, -1, -1, -1, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ]
@@ -68,8 +68,8 @@ class StartGameCommand:
         # Show the game window
         self._game_window.show()
 
-        # Here you would typically send a request to the server to initialize the game
-        # self._send_to_server(request)
+        # Send a request to the server to initialize the game
+        self._send_to_server(request)
 
     def _send_to_server(self, request):
         """
