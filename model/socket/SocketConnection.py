@@ -30,8 +30,8 @@ class SocketConnection:
     def send_request(self, request):
         self._s.send(pickle.dumps(request))
         data = ''
-        data = self._s.recv(1024).decode()
-        print(data)
+        data = pickle.loads(self._s.recv(2048))
+        print(data.print_matrix())
 
 
 
