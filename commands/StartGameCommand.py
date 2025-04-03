@@ -3,6 +3,7 @@
 @description Command to handle starting a new game
 '''
 from commands.requests.StartGameRequest import StartGameRequest
+from model.board.BattleshipMatrix import BattleshipMatrix
 from view.GameWindow import GameWindow
 
 
@@ -27,14 +28,14 @@ class StartGameCommand:
         """
         self._start_window = window
 
-    def execute(self, request: StartGameRequest):
+    def execute(self, matrix: BattleshipMatrix):
         """
         Execute the start game command.
 
         Args:
             request: The StartGameRequest containing player information
         """
-        print(f"Starting game for player {request.get_playerID()} with message: {request.get_message()}")
+        #print(f"Starting game for player {request.get_playerID()} with message: {request.get_message()}")
 
         # Initialize the game window
         self._game_window = GameWindow()
@@ -53,6 +54,8 @@ class StartGameCommand:
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ]
+        #print(matrix.print_matrix())
+        #example_player_grid = matrix.get_matrix()
 
         # Empty opponent grid - since we don't know their ships yet
         empty_opponent_grid = [[0 for _ in range(10)] for _ in range(10)]
@@ -69,7 +72,7 @@ class StartGameCommand:
         self._game_window.show()
 
         # Send a request to the server to initialize the game
-        self._send_to_server(request)
+        #self._send_to_server(request)
 
     def _send_to_server(self, request):
         """

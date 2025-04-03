@@ -6,7 +6,9 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton
 
 from ProjectConstants import ProjectConstants
+from commands.StartGameCommand import StartGameCommand
 from commands.requests.StartGameRequest import StartGameRequest
+from model.socket.SocketConnection import SocketConnection
 
 
 class StartWindow(QMainWindow):
@@ -47,9 +49,10 @@ class StartWindow(QMainWindow):
         return button
 
     def on_start_game_clicked(self):
-        # Create a new StartGameRequest object with the playerID and a message
-        request = StartGameRequest(1, "Hello World")
-
-        # execute the start game command:
-        self._start_game_command.execute(request)
+        start_request = StartGameRequest("Kuroro", "START THE GAME !!")
+        self._start_game_command.set_start_window(self)
+        self._start_game_command.execute(start_request)
+        #socket = SocketConnection("127.0.0.1", 8080)
+        #socket.connect()
+        #matrix = socket.send_request(start_request)
 

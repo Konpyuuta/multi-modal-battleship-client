@@ -39,10 +39,7 @@ from view.StartWindow import StartWindow
 # Pass in sys.argv to allow command line arguments for your app.
 # If you know you won't use command line arguments QApplication([]) works too.
 
-start_request = StartGameRequest("Kuroro", "START THE GAME !!")
-socket = SocketConnection("127.0.0.1", 8080)
-socket.connect()
-socket.send_request(start_request)
+
 app = QApplication(sys.argv)
 
 
