@@ -20,6 +20,7 @@ class SocketConnection:
         self._ip = ip
         self._port = port
         self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._s.settimeout(None)
 
 
     def connect(self):
@@ -29,8 +30,8 @@ class SocketConnection:
 
     def send_request(self, request):
         self._s.send(pickle.dumps(request))
-        data = ''
-        data = pickle.loads(self._s.recv(2048))
+        res = self._s.recv(2048)
+        data = pickle.loads(res)
         return data
 
 

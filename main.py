@@ -42,18 +42,10 @@ from view.StartWindow import StartWindow
 
 app = QApplication(sys.argv)
 
-
-# Initialize game command
-start_game_command = StartGameCommand()
-
 # Create a Qt widget, which will be our window.
-window = StartWindow(start_game_command)
+window = StartWindow()
+window.init_components()
 window.show()  # IMPORTANT!!!!! Windows are hidden by default.
-
-
-# Set the start window reference in the command
-start_game_command.set_start_window(window)
-##start_game_command.execute()
 
 
 # Start the event loop.

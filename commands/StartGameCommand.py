@@ -28,7 +28,7 @@ class StartGameCommand:
         """
         self._start_window = window
 
-    def execute(self, matrix: BattleshipMatrix):
+    def execute(self, request):
         """
         Execute the start game command.
 

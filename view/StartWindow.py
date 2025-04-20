@@ -8,17 +8,24 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton
 from ProjectConstants import ProjectConstants
 from commands.StartGameCommand import StartGameCommand
 from commands.requests.StartGameRequest import StartGameRequest
+from controller.StartNewGameController import StartNewGameController
 from model.socket.SocketConnection import SocketConnection
 
 
 class StartWindow(QMainWindow):
 
-    def __init__(self, start_game_command):
-        super().__init__()
+    _start_new_game_controller = None
+    _instance = None
+
+    def __new__(class_, *args, **kwargs):
+        if not isinstance(class_._instance, class_):
+            class_._instance = QMainWindow.__new__(class_, *args, **kwargs)
+        return class_._instance
+
+    def init_components(self):
 
         # store the game command
-        self._start_game_command = start_game_command
-
+        self._start_new_game_controller = StartNewGameController()
         centered_widget = QWidget(self)
         # Set the central widget of the Window.
         self.setCentralWidget(centered_widget)
@@ -32,7 +39,7 @@ class StartWindow(QMainWindow):
         # create game start button
         game_button = self.create_button(ProjectConstants.START_WINDOW_GAME_BUTTON)
         # Connect the button's clicked signal to the start_game method
-        game_button.clicked.connect(self.on_start_game_clicked)
+        game_button.clicked.connect(lambda: self._start_new_game_controller.start_new_game_controller(self))
 
         #add buttons to layout
         # button = QPushButton("Press Me!")
@@ -42,6 +49,7 @@ class StartWindow(QMainWindow):
 
         centered_widget.setLayout(layout)
 
+
     def create_button(self, label: str):
         button = QPushButton(label)
         button.setFixedSize(QSize(400, 100))
@@ -49,9 +57,7 @@ class StartWindow(QMainWindow):
         return button
 
     def on_start_game_clicked(self):
-        start_request = StartGameRequest("Kuroro", "START THE GAME !!")
-        self._start_game_command.set_start_window(self)
-        self._start_game_command.execute(start_request)
+        pass
         #socket = SocketConnection("127.0.0.1", 8080)
         #socket.connect()
         #matrix = socket.send_request(start_request)
