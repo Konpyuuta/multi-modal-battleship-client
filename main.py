@@ -48,5 +48,5 @@ window.init_components()
 window.show()  # IMPORTANT!!!!! Windows are hidden by default.
 
 
-# Start the event loop.
-app.exec()
+# Exit the application as soon as the user closes the Window ..
+sys.exit(app.exec_())

@@ -2,11 +2,14 @@
 
 @author Maurice Amon
 '''
+import time
+
 from commands.StartGameCommand import StartGameCommand
+from commands.requests.FetchGameStateRequest import FetchGameStateRequest
 from commands.requests.StartGameRequest import StartGameRequest
 from model.socket.SocketConnection import SocketConnection
 from view.GameWindow import GameWindow
-
+import threading
 
 class StartNewGameController:
 
@@ -14,6 +17,19 @@ class StartNewGameController:
 
     def __init__(self):
         self._start_game_command = StartGameCommand()
+
+
+    def continously_fetch_game_data(self):
+        is_game_over = False
+        while is_game_over != 1:
+            time.sleep((2))
+            fetch_request = FetchGameStateRequest("Kuroro", "Fetch")
+            s = SocketConnection("127.0.0.1", 8080)
+            s.connect()
+            game_state = s.send_request(fetch_request)
+            is_game_over = game_state.get_game_state()
+            self._game_window.update_player_grid(game_state.get_player_matrix())
+            self._game_window.update_opponent_grid(game_state.get_opponent_matrix())
 
 
     def start_new_game_controller(self, start_window):
@@ -27,30 +43,17 @@ class StartNewGameController:
         print(matrix)
         # Initialize the game window
         self._game_window = GameWindow()
-
-        # Example grid initialization - this would come from the server
-        # For testing purposes I've created a sample grid
-        example_player_grid = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 2, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, -1, -1, -1, -1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        ]
-        #print(matrix.print_matrix())
-        #example_player_grid = matrix.get_matrix()
-
         # Empty opponent grid - since we don't know their ships yet
         empty_opponent_grid = [[0 for _ in range(10)] for _ in range(10)]
 
-        # Update the grids
         self._game_window.update_player_grid(matrix.get_matrix())
         self._game_window.update_opponent_grid(empty_opponent_grid)
-        # Show the game window
+        self._game_window.start_thread()
+        self.show_game_window()
+
+
+    def show_game_window(self):
         self._game_window.show()
+
+
 

@@ -3,11 +3,33 @@
 @description Main game window that displays the battleship grid
 '''
 import sys
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel
-from PyQt5.QtCore import Qt, QSize
+import time
 
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt5.QtCore import Qt, QSize, QThread, pyqtSignal
+
+from commands.requests.FetchGameStateRequest import FetchGameStateRequest
+from model.socket.SocketConnection import SocketConnection
 from view.BattleshipGrid import BattleshipGrid
 from ProjectConstants import ProjectConstants
+
+class GameUpdater(QThread):
+    matrices = pyqtSignal(object, object)
+
+    def run(self):
+        is_game_over = 0
+        while is_game_over != 1:
+            time.sleep((2))
+            fetch_request = FetchGameStateRequest("Kuroro", "Fetch")
+            s = SocketConnection("127.0.0.1", 8080)
+            s.connect()
+            game_state = s.send_request(fetch_request)
+            is_game_over = game_state.get_game_state()
+            player_matrix = game_state.get_player_matrix().get_matrix()
+            opponent_matrix = game_state.get_opponent_matrix().get_matrix()
+            # Emit matrices to the GUI ...
+            self.matrices.emit(player_matrix, opponent_matrix)
+
 
 
 class GameWindow(QMainWindow):
@@ -57,6 +79,17 @@ class GameWindow(QMainWindow):
         main_layout.addWidget(opponent_section)
 
         self.setCentralWidget(main_widget)
+
+
+    def start_thread(self):
+        self.updater = GameUpdater()
+        self.updater.matrices.connect(self.update_grids)
+        self.updater.start()
+
+    def update_grids(self, player_matrix, opponent_matrix):
+        self.player_grid.update_grid(player_matrix)
+        self.opponent_grid.update_grid(opponent_matrix)
+
 
     def update_player_grid(self, grid_data):
         """
