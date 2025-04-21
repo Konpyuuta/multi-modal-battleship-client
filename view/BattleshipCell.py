@@ -3,6 +3,10 @@ from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLabel, QMainWin
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QPainterPath, QFont
 from PyQt5.QtCore import Qt, QRect, QRectF, QPointF, QSize
 
+from commands.requests.MoveRequest import MoveRequest
+from commands.requests.RequestTypes import RequestTypes
+from model.socket.SocketConnection import SocketConnection
+
 
 class BattleshipCell(QWidget):
     """
@@ -15,13 +19,26 @@ class BattleshipCell(QWidget):
     2 = a ship is there and a bomb landed on it (like 1 but more transparent with a red cross)
     """
 
-    def __init__(self, state=0, ship_connections=None, parent=None):
+    _row = None
+
+    _column = None
+
+    def __init__(self, row, column, state=0, ship_connections=None, parent=None):
         super().__init__(parent)
         self.state = state
         # ship_connections is a dictionary with keys: 'top', 'right', 'bottom', 'left'
         # each value is True if there's a ship in that direction, False otherwise
         self.ship_connections = ship_connections or {'top': False, 'right': False, 'bottom': False, 'left': False}
         self.setMinimumSize(50, 50)
+        self._row = row
+        self._column = column
+
+    def mousePressEvent(self, event):
+        print(f'mousePressEvent: Row: {self._row} Column: {self._column}')
+        move_request = MoveRequest(RequestTypes.MOVE_REQUEST, "Kuroro", self._row, self._column)
+        s = SocketConnection("127.0.0.1", 8080)
+        s.connect()
+        s.send_request(move_request)
 
     def paintEvent(self, event):
         painter = QPainter(self)

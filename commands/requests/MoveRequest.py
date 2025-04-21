@@ -2,8 +2,11 @@
 
 @author Maurice Amon
 '''
+from commands.requests.Request import Request
+from commands.requests.RequestTypes import RequestTypes
 
-class MoveRequest:
+
+class MoveRequest(Request):
 
     _playerID = None
 
@@ -13,10 +16,12 @@ class MoveRequest:
 
     _is_valid = None
 
-    def __init__(self, playerID, col, row):
+    def __init__(self, request_type: RequestTypes, playerID, col, row):
+        super()
         self._playerID = playerID
         self._col = col
         self._row = row
+        self._request_type = RequestTypes.MOVE_REQUEST
 
     def set_is_valid(self, is_valid):
         self._is_valid = is_valid
@@ -33,3 +38,5 @@ class MoveRequest:
     def getRow(self):
         return self._row
 
+    def getRequestType(self):
+        return self._request_type

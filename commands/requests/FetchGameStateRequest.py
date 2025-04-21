@@ -24,3 +24,6 @@ class FetchGameStateRequest(Request):
 
     def get_playerID(self):
         return self._playerID
+
+    def get_request_type(self):
+        return self._request_type

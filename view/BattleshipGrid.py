@@ -51,7 +51,7 @@ class BattleshipGrid(QWidget):
                 cell_state = self.grid_data[i][j]
                 conn = ship_connections[i][j] if cell_state in [1, 2] else None
 
-                cell = BattleshipCell(state=cell_state, ship_connections=conn)
+                cell = BattleshipCell(i, j, state=cell_state, ship_connections=conn)
                 layout.addWidget(cell, i + 1, j + 1)
                 self.cells[i][j] = cell
 
