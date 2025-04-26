@@ -6,15 +6,15 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton
 
 from ProjectConstants import ProjectConstants
-from commands.StartGameCommand import StartGameCommand
-from commands.requests.StartGameRequest import StartGameRequest
+from controller.EditConfigurationsController import EditConfigurationsController
 from controller.StartNewGameController import StartNewGameController
-from model.socket.SocketConnection import SocketConnection
+from view.SocketConfigurationWindow import SocketConfigurationWindow
 
 
 class StartWindow(QMainWindow):
 
     _start_new_game_controller = None
+    _edit_config_controller = None
     _instance = None
 
     def __new__(class_, *args, **kwargs):
@@ -26,6 +26,7 @@ class StartWindow(QMainWindow):
 
         # store the game command
         self._start_new_game_controller = StartNewGameController()
+        self._edit_config_controller = EditConfigurationsController()
         centered_widget = QWidget(self)
         # Set the central widget of the Window.
         self.setCentralWidget(centered_widget)
@@ -38,14 +39,16 @@ class StartWindow(QMainWindow):
 
         # create game start button
         game_button = self.create_button(ProjectConstants.START_WINDOW_GAME_BUTTON)
+        edit_button = self.create_button(ProjectConstants.START_WINDOW_CONFIG_BUTTON)
         # Connect the button's clicked signal to the start_game method
         game_button.clicked.connect(lambda: self._start_new_game_controller.start_new_game_controller(self))
+        edit_button.clicked.connect(self.show_edit_configurations)
 
         #add buttons to layout
         # button = QPushButton("Press Me!")
         # button.setFixedSize(QSize(400, 100))
         layout.addWidget(game_button)
-        layout.addWidget(self.create_button(ProjectConstants.START_WINDOW_CONFIG_BUTTON))
+        layout.addWidget(edit_button)
 
         centered_widget.setLayout(layout)
 
@@ -62,3 +65,7 @@ class StartWindow(QMainWindow):
         #socket.connect()
         #matrix = socket.send_request(start_request)
 
+
+    def show_edit_configurations(self):
+        self._socket_window = SocketConfigurationWindow()
+        self._socket_window.show()

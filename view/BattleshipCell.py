@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt, QRect, QRectF, QPointF, QSize
 from commands.requests.MoveRequest import MoveRequest
 from commands.requests.RequestTypes import RequestTypes
 from model.socket.SocketConnection import SocketConnection
+from model.socket.SocketData import SocketData
 
 
 class BattleshipCell(QWidget):
@@ -23,9 +24,12 @@ class BattleshipCell(QWidget):
 
     _column = None
 
-    def __init__(self, row, column, state=0, ship_connections=None, parent=None):
+    _is_opponent = None
+
+    def __init__(self, row, column, is_opponent, state=0, ship_connections=None, parent=None):
         super().__init__(parent)
         self.state = state
+        self._is_opponent = is_opponent
         # ship_connections is a dictionary with keys: 'top', 'right', 'bottom', 'left'
         # each value is True if there's a ship in that direction, False otherwise
         self.ship_connections = ship_connections or {'top': False, 'right': False, 'bottom': False, 'left': False}
@@ -34,11 +38,12 @@ class BattleshipCell(QWidget):
         self._column = column
 
     def mousePressEvent(self, event):
-        print(f'mousePressEvent: Row: {self._row} Column: {self._column}')
-        move_request = MoveRequest(RequestTypes.MOVE_REQUEST, "Kuroro", self._row, self._column)
-        s = SocketConnection("127.0.0.1", 8080)
-        s.connect()
-        s.send_request(move_request)
+        if self._is_opponent:
+            print(f'mousePressEvent: Row: {self._row} Column: {self._column}')
+            move_request = MoveRequest(RequestTypes.MOVE_REQUEST, SocketData().get_name(), self._row, self._column)
+            s = SocketConnection(SocketData().get_ip_address(), int(SocketData().get_port()))
+            s.connect()
+            s.send_request(move_request)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -60,7 +65,10 @@ class BattleshipCell(QWidget):
             self._draw_black_cross(painter, rect)
 
         elif self.state == 1:  # Ship (no hit)
-            self._draw_ship(painter, rect, ship_color)
+            if self._is_opponent:
+                self._draw_water(painter, rect, water_color)
+            else:
+                self._draw_ship(painter, rect, ship_color)
 
         elif self.state == 2:  # Ship hit
             self._draw_ship(painter, rect, hit_ship_color)

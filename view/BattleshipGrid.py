@@ -9,10 +9,12 @@ class BattleshipGrid(QWidget):
     Widget for the Battleship game grid.
     """
 
-    def __init__(self, grid_data=None, parent=None):
+    _is_opponent = None
+
+    def __init__(self, is_opponent, grid_data=None, parent=None):
         super().__init__(parent)
         self.grid_size = 10  # 10x10 grid
-
+        self._is_opponent = is_opponent
         # Initialize empty grid_data if none provided
         if grid_data is None:
             self.grid_data = [[0 for _ in range(self.grid_size)] for _ in range(self.grid_size)]
@@ -51,7 +53,7 @@ class BattleshipGrid(QWidget):
                 cell_state = self.grid_data[i][j]
                 conn = ship_connections[i][j] if cell_state in [1, 2] else None
 
-                cell = BattleshipCell(i, j, state=cell_state, ship_connections=conn)
+                cell = BattleshipCell(i, j, self._is_opponent, state=cell_state, ship_connections=conn)
                 layout.addWidget(cell, i + 1, j + 1)
                 self.cells[i][j] = cell
 
@@ -111,3 +113,18 @@ class BattleshipGrid(QWidget):
                 self.cells[i][j].state = cell_state
                 self.cells[i][j].ship_connections = conn
                 self.cells[i][j].update()  # Trigger a repaint
+
+
+    def get_cells(self):
+        return self.cells
+
+
+    def disable_cells(self):
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                self.cells[i][j].setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+    def enable_cells(self):
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                self.cells[i][j].setAttribute(Qt.WA_TransparentForMouseEvents, False)

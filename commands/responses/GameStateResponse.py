@@ -12,16 +12,17 @@ class GameStateResponse(Response):
 
     _opponent_matrix = None
 
-    _player_matrix = None
-
     _is_turn = None
 
     # 0: Running game, 1: Game Over
     _game_state = None
 
-    def __init__(self, player_matrix, opponent_matrix, game_state, fetchGameRequest: FetchGameStateRequest):
+    _winner = None
+
+    def __init__(self, player_matrix, opponent_matrix, is_turn, game_state, fetchGameRequest):
         self._player_matrix = player_matrix
         self._opponent_matrix = opponent_matrix
+        self._is_turn = is_turn
         self._game_state = game_state
         self._fetchGameRequest = fetchGameRequest
 
@@ -33,3 +34,12 @@ class GameStateResponse(Response):
 
     def get_game_state(self):
         return self._game_state
+
+    def is_turn(self):
+        return self._is_turn
+
+    def set_winner(self, winner):
+        self._winner = winner
+
+    def get_winner(self):
+        return self._winner
