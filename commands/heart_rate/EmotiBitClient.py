@@ -71,6 +71,7 @@ class EmotiBitClient(QObject):
         self.socket_connection = None
         self.last_sent_hr = 0
         self.hr_threshold = 1.0  # Only send updates when HR changes by this amount
+        self.use_mock_hr = True  # Set to False to use real PPG
 
         print("EmotiBit client processor initialized")
 
@@ -94,15 +95,18 @@ class EmotiBitClient(QObject):
                 print(f"Error connecting to game server: {e}")
                 self.socket_connection = None
 
-        # Start the heart rate calculation thread
-        self.hr_calc_thread = threading.Thread(target=self.calculate_heart_rate)
-        self.hr_calc_thread.daemon = True
-        self.hr_calc_thread.start()
+        # Start the correct heart rate calculation method
+        if self.use_mock_hr:
+            self.hr_calc_thread = threading.Thread(target=self.mock_heart_rate_loop)
+        else:
+            self.hr_calc_thread = threading.Thread(target=self.calculate_heart_rate)
+            self.hr_calc_thread.daemon = True
+            self.hr_calc_thread.start()
 
-        # Start the OSC server in a separate thread
-        self.server_thread = threading.Thread(target=self.run_osc_server)
-        self.server_thread.daemon = True
-        self.server_thread.start()
+            # Start the OSC server in a separate thread
+            self.server_thread = threading.Thread(target=self.run_osc_server)
+            self.server_thread.daemon = True
+            self.server_thread.start()
 
         print(f"EmotiBit client processor started on {self.ip}:{self.port}")
 
@@ -147,6 +151,24 @@ class EmotiBitClient(QObject):
         """Default handler for other OSC messages."""
         # We don't need to handle other messages for this simple implementation
         pass
+
+    def mock_heart_rate_loop(self):
+        """Mock heart rate generator for testing."""
+        import random
+
+        while self.running:
+            mock_hr = random.uniform(60, 100)  # Simulate HR between 60-100 BPM
+
+            self.latest_hr = mock_hr
+            print(f"[MOCK] Current heart rate: {mock_hr:.1f} BPM")
+
+            self.heart_rate_updated.emit(mock_hr)
+
+            if self.socket_connection and abs(mock_hr - self.last_sent_hr) >= self.hr_threshold:
+                self.send_heart_rate_to_server(mock_hr)
+                self.last_sent_hr = mock_hr
+
+            time.sleep(1.0)  # Simulate real-time update every second
 
     def calculate_heart_rate(self):
         """Calculate heart rate from PPG data."""
