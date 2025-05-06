@@ -1,5 +1,5 @@
 '''
-@author Adapted for client-side implementation
+@author Alessia Bussard
 @description Client-side EmotiBit heart rate processor for battleship game
 '''
 
@@ -10,6 +10,11 @@ from scipy import signal
 from pythonosc import dispatcher
 from pythonosc import osc_server
 from PyQt5.QtCore import QObject, pyqtSignal
+
+# Import socket connection and heart rate request
+from commands.heart_rate.HeartRateRequest import HeartRateRequest
+from model.socket.SocketConnection import SocketConnection
+from model.socket.SocketData import SocketData
 
 
 class EmotiBitClient(QObject):
@@ -61,6 +66,12 @@ class EmotiBitClient(QObject):
         self.disp.map("/EmotiBit/0/PPG:GRN", self.ppg_green_handler)
         self.disp.set_default_handler(self.default_handler)
 
+        # Create socket connection for sending data to server
+        self.socket_data = SocketData()
+        self.socket_connection = None
+        self.last_sent_hr = 0
+        self.hr_threshold = 1.0  # Only send updates when HR changes by this amount
+
         print("EmotiBit client processor initialized")
 
     def start(self):
@@ -69,6 +80,19 @@ class EmotiBitClient(QObject):
             return
 
         self.running = True
+
+        # Initialize socket connection
+        if self.socket_data._initialized and self.socket_data.get_ip_address() and self.socket_data.get_port():
+            try:
+                self.socket_connection = SocketConnection(
+                    self.socket_data.get_ip_address(),
+                    self.socket_data.get_port()
+                )
+                self.socket_connection.connect()
+                print("Connected to game server for heart rate updates")
+            except Exception as e:
+                print(f"Error connecting to game server: {e}")
+                self.socket_connection = None
 
         # Start the heart rate calculation thread
         self.hr_calc_thread = threading.Thread(target=self.calculate_heart_rate)
@@ -126,7 +150,7 @@ class EmotiBitClient(QObject):
 
     def calculate_heart_rate(self):
         """Calculate heart rate from PPG data."""
-        min_data_points = self.sampling_rate * 2  # At least 2 seconds of data
+        min_data_points = self.sampling_rate * 4  # At least 4 seconds of data
 
         while self.running:
             # Check if we have enough data
@@ -161,12 +185,39 @@ class EmotiBitClient(QObject):
 
                             # Emit the heart rate update signal
                             self.heart_rate_updated.emit(hr_bpm)
+
+                            # Send heart rate to server if connection exists and value changed significantly
+                            if self.socket_connection and abs(hr_bpm - self.last_sent_hr) >= self.hr_threshold:
+                                self.send_heart_rate_to_server(hr_bpm)
+                                self.last_sent_hr = hr_bpm
                 except Exception as e:
                     print(f"Error calculating heart rate: {e}")
 
             # Sleep to avoid using too much CPU
-            time.sleep(0.2)
+            time.sleep(0.5)
 
     def get_current_heart_rate(self):
         """Get the most recently calculated heart rate."""
         return self.latest_hr
+
+    def send_heart_rate_to_server(self, heart_rate):
+        """
+        Send the current heart rate to the game server
+
+        Args:
+            heart_rate (float): The current heart rate in BPM
+        """
+        try:
+            if self.socket_connection:
+                # Create heart rate request
+                request = HeartRateRequest(heart_rate)
+
+                # Send request to server
+                response = self.socket_connection.send_request(request)
+
+                # Log success
+                print(f"Sent heart rate ({heart_rate:.1f} BPM) to server. Response: {response}")
+            else:
+                print("Cannot send heart rate: No server connection")
+        except Exception as e:
+            print(f"Error sending heart rate to server: {e}")
