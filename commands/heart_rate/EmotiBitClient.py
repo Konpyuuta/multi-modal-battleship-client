@@ -95,42 +95,12 @@ class EmotiBitClient(QObject):
 
         self.running = True
 
-        # First connect to heart rate server
-        try:
-            self.hr_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.hr_socket.connect((self.socket_data.get_ip_address(), 8081))  # HR server port
-
-            # Send player ID to identify this connection
-            player_id = "YOUR_PLAYER_ID"  # You need to get this from your game
-            self.hr_socket.send(pickle.dumps(player_id))
-
-            # Start a thread to listen for opponent heart rate updates
-            threading.Thread(target=self.listen_for_opponent_hr, daemon=True).start()
-
-            print("Connected to heart rate server")
-        except Exception as e:
-            print(f"Error connecting to heart rate server: {e}")
-            self.hr_socket = None
-
-        # Then initialize the game socket connection
-        if self.socket_data._initialized and self.socket_data.get_ip_address() and self.socket_data.get_port():
-            try:
-                self.socket_connection = SocketConnection(
-                    self.socket_data.get_ip_address(),
-                    self.socket_data.get_port()
-                )
-                self.socket_connection.connect()
-                print("Connected to game server")
-            except Exception as e:
-                print(f"Error connecting to game server: {e}")
-                self.socket_connection = None
-
-        # Start the heart rate generation as before
+        # Start the heart rate generation first (doesn't use network)
         if self.use_mock_hr:
             self.hr_calc_thread = threading.Thread(target=self.mock_heart_rate_loop)
             self.hr_calc_thread.daemon = True
             self.hr_calc_thread.start()
-
+            print("Started mock heart rate generator")
         else:
             self.hr_calc_thread = threading.Thread(target=self.calculate_heart_rate)
             self.hr_calc_thread.daemon = True
@@ -140,6 +110,29 @@ class EmotiBitClient(QObject):
             self.server_thread = threading.Thread(target=self.run_osc_server)
             self.server_thread.daemon = True
             self.server_thread.start()
+
+        # Only handle heart rate server connection here (not game connection)
+        try:
+            # Create a separate socket for heart rate data
+            import socket
+            import pickle
+
+            self.hr_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # Connect to the heart rate server
+            self.hr_socket.connect((self.socket_data.get_ip_address(), 8081))
+
+            # Send identification
+            player_id = self.socket_data.get_name() or "Player"
+            self.hr_socket.send(pickle.dumps(player_id))
+
+            # Start thread to listen for opponent heart rate
+            hr_listen_thread = threading.Thread(target=self.listen_for_opponent_hr, daemon=True)
+            hr_listen_thread.start()
+
+            print("Connected to heart rate server")
+        except Exception as e:
+            print(f"Error connecting to heart rate server: {e}")
+            self.hr_socket = None
 
         print(f"EmotiBit client processor started on {self.ip}:{self.port}")
 
