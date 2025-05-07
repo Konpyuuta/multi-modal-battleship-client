@@ -250,33 +250,36 @@ class EmotiBitClient(QObject):
 
     def listen_for_opponent_hr(self):
         """Listen for heart rate updates from opponents"""
+        print("Starting opponent heart rate listener")
+
         while self.running and self.hr_socket:
             try:
                 data = self.hr_socket.recv(1024)
                 if not data:
+                    print("Heart rate connection closed by server")
                     break
 
-                hr_update = pickle.loads(data)
+                # Parse the received data
+                message = pickle.loads(data)
 
-                if isinstance(hr_update, dict) and "player_id" in hr_update and "heart_rate" in hr_update:
-                    opponent_id = hr_update["player_id"]
-                    opponent_hr = hr_update["heart_rate"]
+                # Check if it's an opponent heart rate update
+                if isinstance(message, dict) and "player_id" in message and "heart_rate" in message:
+                    opponent_id = message["player_id"]
+                    heart_rate = message["heart_rate"]
+                    print(f"Received opponent heart rate: {heart_rate} BPM from {opponent_id}")
 
-                    print(f"Opponent {opponent_id} heart rate: {opponent_hr} BPM")
-
-                    # Emit a signal that the UI can listen for
-                    self.opponent_heart_rate_updated.emit(opponent_id, opponent_hr)
-
-                elif isinstance(hr_update, str):
-                    # Regular confirmation message
-                    print(f"Heart rate server: {hr_update}")
-                else:
-                    print(f"Unknown message format: {hr_update}")
-
+                    # Emit signal to update UI
+                    self.opponent_heart_rate_updated.emit(opponent_id, heart_rate)
+                elif isinstance(message, str):
+                    # Regular server message
+                    print(f"Heart rate server message: {message}")
             except Exception as e:
-                print(f"Error receiving opponent heart rate: {e}")
+                print(f"Error receiving heart rate data: {e}")
                 import traceback
                 traceback.print_exc()
+                break
+
+        print("Opponent heart rate listener stopped")
 
 
     def send_heart_rate_to_server(self, heart_rate):
