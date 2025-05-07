@@ -263,18 +263,27 @@ class EmotiBitClient(QObject):
                     break
 
                 hr_update = pickle.loads(data)
-                opponent_id = hr_update.get("player_id")
-                opponent_hr = hr_update.get("heart_rate")
 
-                print(f"Opponent {opponent_id} heart rate: {opponent_hr} BPM")
+                if isinstance(hr_update, dict) and "player_id" in hr_update and "heart_rate" in hr_update:
+                    opponent_id = hr_update["player_id"]
+                    opponent_hr = hr_update["heart_rate"]
 
-                # Emit a signal that the UI can listen for
-                # You'll need to create this signal
-                self.opponent_heart_rate_updated.emit(opponent_id, opponent_hr)
+                    print(f"Opponent {opponent_id} heart rate: {opponent_hr} BPM")
+
+                    # Emit a signal that the UI can listen for
+                    self.opponent_heart_rate_updated.emit(opponent_id, opponent_hr)
+
+                elif isinstance(hr_update, str):
+                    # Regular confirmation message
+                    print(f"Heart rate server: {hr_update}")
+                else:
+                    print(f"Unknown message format: {hr_update}")
 
             except Exception as e:
                 print(f"Error receiving opponent heart rate: {e}")
-                break
+                import traceback
+                traceback.print_exc()
+
 
     def send_heart_rate_to_server(self, heart_rate):
         """Send heart rate to the server"""
