@@ -6,6 +6,8 @@
 import threading
 import time
 import numpy as np
+import pickle
+import socket
 from scipy import signal
 from pythonosc import dispatcher
 from pythonosc import osc_server
@@ -24,6 +26,8 @@ class EmotiBitClient(QObject):
     """
     # PyQt signal for heart rate updates
     heart_rate_updated = pyqtSignal(float)
+    # Add a new signal for opponent heart rate updates
+    opponent_heart_rate_updated = pyqtSignal(str, float)
 
     # Singleton instance
     _instance = None
@@ -91,9 +95,7 @@ class EmotiBitClient(QObject):
 
         self.running = True
 
-        print(f"Socket data status: initialized={self.socket_data._initialized}, IP={self.socket_data.get_ip_address()}, port={self.socket_data.get_port()}")
-
-        # Initialize socket connection
+        # Initialize socket connection for game server
         if self.socket_data._initialized and self.socket_data.get_ip_address() and self.socket_data.get_port():
             try:
                 self.socket_connection = SocketConnection(
@@ -101,10 +103,27 @@ class EmotiBitClient(QObject):
                     self.socket_data.get_port()
                 )
                 self.socket_connection.connect()
-                print("Connected to game server for heart rate updates")
+                print("Connected to game server")
             except Exception as e:
                 print(f"Error connecting to game server: {e}")
                 self.socket_connection = None
+
+        # Initialize separate connection for heart rate updates
+        try:
+            self.hr_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.hr_socket.connect((self.socket_data.get_ip_address(), 8081))  # HR server port
+
+            # Send player ID to identify this connection
+            player_id = "YOUR_PLAYER_ID"  # You need to get this from your game
+            self.hr_socket.send(pickle.dumps(player_id))
+
+            # Start a thread to listen for opponent heart rate updates
+            threading.Thread(target=self.listen_for_opponent_hr, daemon=True).start()
+
+            print("Connected to heart rate server")
+        except Exception as e:
+            print(f"Error connecting to heart rate server: {e}")
+            self.hr_socket = None
 
         # Start the correct heart rate calculation method
         if self.use_mock_hr:
@@ -235,24 +254,48 @@ class EmotiBitClient(QObject):
         """Get the most recently calculated heart rate."""
         return self.latest_hr
 
-    def send_heart_rate_to_server(self, heart_rate):
-        """
-        Send the current heart rate to the game server
+    def listen_for_opponent_hr(self):
+        """Listen for heart rate updates from opponents"""
+        while self.running and self.hr_socket:
+            try:
+                data = self.hr_socket.recv(1024)
+                if not data:
+                    break
 
-        Args:
-            heart_rate (float): The current heart rate in BPM
-        """
+                hr_update = pickle.loads(data)
+                opponent_id = hr_update.get("player_id")
+                opponent_hr = hr_update.get("heart_rate")
+
+                print(f"Opponent {opponent_id} heart rate: {opponent_hr} BPM")
+
+                # Emit a signal that the UI can listen for
+                # You'll need to create this signal
+                self.opponent_heart_rate_updated.emit(opponent_id, opponent_hr)
+
+            except Exception as e:
+                print(f"Error receiving opponent heart rate: {e}")
+                break
+
+    def send_heart_rate_to_server(self, heart_rate):
+        """Send heart rate to the server"""
         try:
-            if self.socket_connection:
+            if self.hr_socket:
                 # Create heart rate request
                 request = HeartRateRequest(heart_rate)
 
-                # Send request to server
-                response = self.socket_connection.send_request(request)
+                # Serialize and send
+                serialized = pickle.dumps(request)
+                self.hr_socket.send(serialized)
 
-                # Log success
-                print(f"Sent heart rate ({heart_rate:.1f} BPM) to server. Response: {response}")
+                # Get response
+                response = self.hr_socket.recv(1024)
+                response_data = pickle.loads(response)
+
+                print(f"Sent heart rate ({heart_rate:.1f} BPM) to server. Response: {response_data}")
+
+                # Emit signal for UI update
+                self.heart_rate_updated.emit(heart_rate)
             else:
-                print("Cannot send heart rate: No server connection")
+                print("Cannot send heart rate: No heart rate server connection")
         except Exception as e:
             print(f"Error sending heart rate to server: {e}")

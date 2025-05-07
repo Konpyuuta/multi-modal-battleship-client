@@ -1,5 +1,5 @@
 '''
-@author Your Name
+@author Alessia Bussard
 @description Main game window that displays the battleship grid
 '''
 import sys
@@ -13,6 +13,8 @@ from model.socket.SocketConnection import SocketConnection
 from model.socket.SocketData import SocketData
 from view.BattleshipGrid import BattleshipGrid
 from ProjectConstants import ProjectConstants
+from view.HeartRateDisplay import HeartRateDisplay
+from commands.heart_rate.EmotiBitClient import EmotiBitClient
 
 class GameUpdater(QThread):
     matrices = pyqtSignal(object, object, object, object)
@@ -47,11 +49,21 @@ class GameWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(ProjectConstants.PROJECT_NAME)
-        self.resize(1200, 600)  # Adjust size as needed
+        self.resize(1200, 700)  # Adjust size as needed
+
+        # Initialize EmotiBit client
+        self.emotibit = EmotiBitClient.get_instance()
+        self.emotibit.heart_rate_updated.connect(self.update_player_heart_rate)
+        # For opponent heart rate (this signal would need to be added to EmotiBitClient)
+        if hasattr(self.emotibit, 'opponent_heart_rate_updated'):
+            self.emotibit.opponent_heart_rate_updated.connect(self.update_opponent_heart_rate)
 
         # Create main layout
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
+
+        # Create grids layout
+        grids_layout = QHBoxLayout()
 
         # Create player grid section
         player_section = QWidget()
@@ -82,8 +94,24 @@ class GameWindow(QMainWindow):
         opponent_layout.addWidget(self.opponent_grid)
 
         # Add both sections to main layout
-        main_layout.addWidget(player_section)
-        main_layout.addWidget(opponent_section)
+        grids_layout.addWidget(player_section)
+        grids_layout.addWidget(opponent_section)
+
+        # Create heart rate displays layout
+        hr_layout = QHBoxLayout()
+
+        # Create heart rate displays
+        player_name = SocketData().get_name() or "You"
+        self.player_hr_display = HeartRateDisplay(player_name)
+        self.opponent_hr_display = HeartRateDisplay("Opponent")
+
+        # Add heart rate displays to layout
+        hr_layout.addWidget(self.player_hr_display)
+        hr_layout.addWidget(self.opponent_hr_display)
+
+        # Add layouts to main layout
+        main_layout.addLayout(grids_layout)
+        main_layout.addLayout(hr_layout)
 
         self.setCentralWidget(main_widget)
 
@@ -125,3 +153,15 @@ class GameWindow(QMainWindow):
         Update the opponent's grid with new data.
         """
         self.opponent_grid.update_grid(grid_data)
+
+    def update_player_heart_rate(self, heart_rate):
+        """
+        Update the player's heart rate display
+        """
+        self.player_hr_display.update_heart_rate(heart_rate)
+
+    def update_opponent_heart_rate(self, player_id, heart_rate):
+        """
+        Update the opponent's heart rate display
+        """
+        self.opponent_hr_display.update_heart_rate(heart_rate)
