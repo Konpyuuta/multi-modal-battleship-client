@@ -35,22 +35,38 @@ class StartNewGameController:
 
     def start_new_game_controller(self, start_window):
         start_window.hide()
+
+        # Create and send the start request
+        print('Sending start game request...')
         start_request = StartGameRequest(SocketData().get_name(), "START THE GAME !!")
         socket = SocketConnection(SocketData().get_ip_address(), int(SocketData().get_port()))
         socket.connect()
         game_state = socket.send_request(start_request)
-        print("HEYYYY!")
+
+        print("Received game state response:")
         print(game_state)
-        print(game_state.get_player_matrix())
+
         # Initialize the game window
+        print("Creating game window...")
         self._game_window = GameWindow()
+
+        # Show the window first
+        print("Showing game window...")
+        self._game_window.show()
+
         # Empty opponent grid - since we don't know their ships yet
         empty_opponent_grid = [[0 for _ in range(10)] for _ in range(10)]
+
+        # Update the grids
+        print("Updating grids...")
         self._game_window.update_player_grid(game_state.get_player_matrix().get_matrix())
         self._game_window.update_opponent_grid(empty_opponent_grid)
-        self._game_window.start_thread()
-        self.show_game_window()
 
+        # Start the update thread after window is shown
+        print("Starting update thread...")
+        self._game_window.start_thread()
+
+        print("Game initialization complete")
 
 
     def show_game_window(self):
