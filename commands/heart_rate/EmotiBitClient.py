@@ -95,6 +95,9 @@ class EmotiBitClient(QObject):
 
         self.running = True
 
+        # Initialize heart rate socket
+        self.hr_socket = None
+
         # Start the heart rate generation first (doesn't use network)
         if self.use_mock_hr:
             self.hr_calc_thread = threading.Thread(target=self.mock_heart_rate_loop)
@@ -120,6 +123,7 @@ class EmotiBitClient(QObject):
             self.hr_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # Connect to the heart rate server
             self.hr_socket.connect((self.socket_data.get_ip_address(), 8081))
+            print(f"Connected to heart rate server at {self.socket_data.get_ip_address()}:8081")
 
             # Send identification
             player_id = self.socket_data.get_name() or "Player"
@@ -128,8 +132,6 @@ class EmotiBitClient(QObject):
             # Start thread to listen for opponent heart rate
             hr_listen_thread = threading.Thread(target=self.listen_for_opponent_hr, daemon=True)
             hr_listen_thread.start()
-
-            print("Connected to heart rate server")
         except Exception as e:
             print(f"Error connecting to heart rate server: {e}")
             self.hr_socket = None
@@ -181,33 +183,51 @@ class EmotiBitClient(QObject):
     def mock_heart_rate_loop(self):
         """Mock heart rate generator for testing."""
         import random
+        import pickle
 
         while self.running:
-            mock_hr = random.uniform(60, 100)  # Simulate HR between 60-100 BPM
+            try:
+                mock_hr = random.uniform(60, 100)  # Simulate HR between 60-100 BPM
 
-            self.latest_hr = mock_hr
-            print(f"[MOCK] Current heart rate: {mock_hr:.1f} BPM")
+                self.latest_hr = mock_hr
+                print(f"[MOCK] Current heart rate: {mock_hr:.1f} BPM")
 
-            self.heart_rate_updated.emit(mock_hr)
+                # Emit the heart rate updated signal for UI
+                self.heart_rate_updated.emit(mock_hr)
 
-            # Send to heart rate server
-            if self.hr_socket:
-                # Create heart rate request
-                request = HeartRateRequest(mock_hr)
+                # Send to heart rate server
+                if self.hr_socket is not None:
+                    try:
+                        # Create heart rate request
+                        from commands.heart_rate.HeartRateRequest import HeartRateRequest
+                        request = HeartRateRequest(mock_hr)
 
-                # Serialize and send
-                serialized = pickle.dumps(request)
-                self.hr_socket.send(serialized)
+                        # Serialize and send
+                        serialized = pickle.dumps(request)
+                        self.hr_socket.send(serialized)
 
-                # Get response
-                response = self.hr_socket.recv(1024)
-                response_data = pickle.loads(response)
+                        # Get response
+                        response = self.hr_socket.recv(1024)
+                        response_data = pickle.loads(response)
 
-                print(f"Heart rate sent to server: {mock_hr:.1f} BPM, Response: {response_data}")
-
-            if self.socket_connection and abs(mock_hr - self.last_sent_hr) >= self.hr_threshold:
-                self.send_heart_rate_to_server(mock_hr)
-                self.last_sent_hr = mock_hr
+                        print(f"Heart rate sent to server: {mock_hr:.1f} BPM, Response: {response_data}")
+                    except Exception as e:
+                        print(f"Error sending heart rate to server: {e}")
+                        self.hr_socket = None
+                else:
+                    print("Heart rate socket not connected")
+                    # Try to reconnect
+                    try:
+                        import socket
+                        self.hr_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        self.hr_socket.connect((self.socket_data.get_ip_address(), 8081))
+                        self.hr_socket.send(pickle.dumps(self.socket_data.get_name() or "Player"))
+                        print("Reconnected to heart rate server")
+                    except Exception as e:
+                        print(f"Failed to reconnect to heart rate server: {e}")
+                        self.hr_socket = None
+            except Exception as e:
+                print(f"Error in mock_heart_rate_loop: {e}")
 
             time.sleep(1.0)  # Simulate real-time update every second
 
@@ -290,8 +310,6 @@ class EmotiBitClient(QObject):
                     print(f"Heart rate server message: {message}")
             except Exception as e:
                 print(f"Error receiving heart rate data: {e}")
-                import traceback
-                traceback.print_exc()
                 break
 
         print("Opponent heart rate listener stopped")
