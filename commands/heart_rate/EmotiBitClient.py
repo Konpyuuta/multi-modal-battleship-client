@@ -95,20 +95,7 @@ class EmotiBitClient(QObject):
 
         self.running = True
 
-        # Initialize socket connection for game server
-        if self.socket_data._initialized and self.socket_data.get_ip_address() and self.socket_data.get_port():
-            try:
-                self.socket_connection = SocketConnection(
-                    self.socket_data.get_ip_address(),
-                    self.socket_data.get_port()
-                )
-                self.socket_connection.connect()
-                print("Connected to game server")
-            except Exception as e:
-                print(f"Error connecting to game server: {e}")
-                self.socket_connection = None
-
-        # Initialize separate connection for heart rate updates
+        # First connect to heart rate server
         try:
             self.hr_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.hr_socket.connect((self.socket_data.get_ip_address(), 8081))  # HR server port
@@ -125,11 +112,25 @@ class EmotiBitClient(QObject):
             print(f"Error connecting to heart rate server: {e}")
             self.hr_socket = None
 
-        # Start the correct heart rate calculation method
+        # Then initialize the game socket connection
+        if self.socket_data._initialized and self.socket_data.get_ip_address() and self.socket_data.get_port():
+            try:
+                self.socket_connection = SocketConnection(
+                    self.socket_data.get_ip_address(),
+                    self.socket_data.get_port()
+                )
+                self.socket_connection.connect()
+                print("Connected to game server")
+            except Exception as e:
+                print(f"Error connecting to game server: {e}")
+                self.socket_connection = None
+
+        # Start the heart rate generation as before
         if self.use_mock_hr:
             self.hr_calc_thread = threading.Thread(target=self.mock_heart_rate_loop)
             self.hr_calc_thread.daemon = True
             self.hr_calc_thread.start()
+
         else:
             self.hr_calc_thread = threading.Thread(target=self.calculate_heart_rate)
             self.hr_calc_thread.daemon = True
