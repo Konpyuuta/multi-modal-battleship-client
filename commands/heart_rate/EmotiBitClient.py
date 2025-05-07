@@ -29,13 +29,17 @@ class EmotiBitClient(QObject):
     _instance = None
 
     @staticmethod
-    def get_instance():
+    def get_instance(socket_data=None):
         """Get or create the singleton instance."""
         if EmotiBitClient._instance is None:
-            EmotiBitClient._instance = EmotiBitClient()
+            EmotiBitClient._instance = EmotiBitClient(socket_data)
+        elif socket_data is not None:
+            # Update socket data if provided
+            EmotiBitClient._instance.socket_data = socket_data
+            EmotiBitClient._instance._initialized = True
         return EmotiBitClient._instance
 
-    def __init__(self):
+    def __init__(self, socket_data=None):
         """Initialize the EmotiBit processor."""
         super().__init__()
 
@@ -66,6 +70,11 @@ class EmotiBitClient(QObject):
         self.disp.map("/EmotiBit/0/PPG:GRN", self.ppg_green_handler)
         self.disp.set_default_handler(self.default_handler)
 
+        if socket_data is not None:
+            self.socket_data = socket_data
+        else:
+            self.socket_data = SocketData()
+
         # Create socket connection for sending data to server
         self.socket_data = SocketData()
         self.socket_connection = None
@@ -81,6 +90,8 @@ class EmotiBitClient(QObject):
             return
 
         self.running = True
+
+        print(f"Socket data status: initialized={self.socket_data._initialized}, IP={self.socket_data.get_ip_address()}, port={self.socket_data.get_port()}")
 
         # Initialize socket connection
         if self.socket_data._initialized and self.socket_data.get_ip_address() and self.socket_data.get_port():
@@ -98,6 +109,8 @@ class EmotiBitClient(QObject):
         # Start the correct heart rate calculation method
         if self.use_mock_hr:
             self.hr_calc_thread = threading.Thread(target=self.mock_heart_rate_loop)
+            self.hr_calc_thread.daemon = True
+            self.hr_calc_thread.start()
         else:
             self.hr_calc_thread = threading.Thread(target=self.calculate_heart_rate)
             self.hr_calc_thread.daemon = True

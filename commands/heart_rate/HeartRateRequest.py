@@ -12,7 +12,7 @@ class HeartRateRequest(Request):
     _heart_rate = None
 
     def __init__(self, heart_rate):
-        super().__init__(RequestTypes.HEART_RATE)
+        self._request_type = RequestTypes.HEART_RATE
         self._heart_rate = heart_rate
 
     def get_heart_rate(self):

@@ -76,6 +76,19 @@ def check_emotibit_data():
         timer = QTimer()
         timer.singleShot(10000, check_emotibit_data)
 
+
+def configure_socket_connection():
+    """Configure the socket connection for EmotiBit"""
+    from model.socket.SocketData import SocketData
+
+    socket_data = SocketData()
+    socket_data.set_ip_address("192.168.1.6")  # Replace with your server IP
+    socket_data.set_port(8080)  # Replace with your server port
+    socket_data._initialized = True
+
+    print(f"Socket configured: {socket_data.get_ip_address()}:{socket_data.get_port()}")
+    return socket_data
+
 # ===== APPLICATION INITIALIZATION =====
 
 #command = StartSpeechModuleCommand()
@@ -88,7 +101,20 @@ def check_emotibit_data():
 
 app = QApplication(sys.argv)
 
-emotibit = initialize_emotibit()
+
+# Configure socket before initializing EmotiBit
+socket_data = configure_socket_connection()
+# Get the singleton instance with socket configuration
+emotibit = EmotiBitClient.get_instance(socket_data)
+# Connect signal to log heart rate updates
+emotibit.heart_rate_updated.connect(on_heart_rate_updated)
+# Start the client (this starts the processing threads)
+emotibit.start()
+# Set up a timer to check if we're getting data
+timer = QTimer()
+timer.singleShot(10000, check_emotibit_data)
+print("EmotiBit client initialized")
+
 
 # Create a Qt widget, which will be our window.
 window = StartWindow()
