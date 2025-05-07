@@ -103,17 +103,17 @@ app = QApplication(sys.argv)
 
 
 # Configure socket before initializing EmotiBit
-#socket_data = configure_socket_connection()
+socket_data = configure_socket_connection()
 # Get the singleton instance with socket configuration
-#emotibit = EmotiBitClient.get_instance(socket_data)
+emotibit = EmotiBitClient.get_instance(socket_data)
 # Connect signal to log heart rate updates
-#emotibit.heart_rate_updated.connect(on_heart_rate_updated)
+emotibit.heart_rate_updated.connect(on_heart_rate_updated)
 # Start the client (this starts the processing threads)
-#emotibit.start()
+emotibit.start()
 # Set up a timer to check if we're getting data
-#timer = QTimer()
-#timer.singleShot(10000, check_emotibit_data)
-#print("EmotiBit client initialized")
+timer = QTimer()
+timer.singleShot(10000, check_emotibit_data)
+print("EmotiBit client initialized")
 
 
 # Create a Qt widget, which will be our window.

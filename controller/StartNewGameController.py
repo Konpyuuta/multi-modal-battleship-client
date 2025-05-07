@@ -36,6 +36,10 @@ class StartNewGameController:
     def start_new_game_controller(self, start_window):
         start_window.hide()
 
+        # Print detailed connection info
+        print(f"Game server IP: {SocketData().get_ip_address()}")
+        print(f"Game server port: {SocketData().get_port()}")
+
         # Create and send the start request
         print('Sending start game request...')
         start_request = StartGameRequest(SocketData().get_name(), "START THE GAME !!")
