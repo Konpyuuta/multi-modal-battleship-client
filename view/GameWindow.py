@@ -147,11 +147,6 @@ class GameWindow(QMainWindow):
         """
         self.opponent_grid.update_grid(grid_data)
 
-    def update_player_heart_rate(self, heart_rate):
-        """
-        Update the player's heart rate display
-        """
-        self.player_hr_display.update_heart_rate(heart_rate)
 
     def update_opponent_heart_rate(self, player_id, heart_rate):
         """
