@@ -190,6 +190,21 @@ class EmotiBitClient(QObject):
 
             self.heart_rate_updated.emit(mock_hr)
 
+            # Send to heart rate server
+            if self.hr_socket:
+                # Create heart rate request
+                request = HeartRateRequest(mock_hr)
+
+                # Serialize and send
+                serialized = pickle.dumps(request)
+                self.hr_socket.send(serialized)
+
+                # Get response
+                response = self.hr_socket.recv(1024)
+                response_data = pickle.loads(response)
+
+                print(f"Heart rate sent to server: {mock_hr:.1f} BPM, Response: {response_data}")
+
             if self.socket_connection and abs(mock_hr - self.last_sent_hr) >= self.hr_threshold:
                 self.send_heart_rate_to_server(mock_hr)
                 self.last_sent_hr = mock_hr
