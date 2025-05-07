@@ -126,7 +126,7 @@ class EmotiBitClient(QObject):
             print(f"Connected to heart rate server at {self.socket_data.get_ip_address()}:8081")
 
             # Send identification
-            player_id = self.socket_data.get_name() or "Player"
+            player_id = self.socket_data.get_name() or "Player Gian"
             self.hr_socket.send(pickle.dumps(player_id))
 
             # Start thread to listen for opponent heart rate
@@ -221,7 +221,7 @@ class EmotiBitClient(QObject):
                         import socket
                         self.hr_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         self.hr_socket.connect((self.socket_data.get_ip_address(), 8081))
-                        self.hr_socket.send(pickle.dumps(self.socket_data.get_name() or "Player"))
+                        self.hr_socket.send(pickle.dumps(self.socket_data.get_name() or "Gian"))
                         print("Reconnected to heart rate server")
                     except Exception as e:
                         print(f"Failed to reconnect to heart rate server: {e}")
@@ -229,7 +229,7 @@ class EmotiBitClient(QObject):
             except Exception as e:
                 print(f"Error in mock_heart_rate_loop: {e}")
 
-            time.sleep(1.0)  # Simulate real-time update every second
+            time.sleep(3.0)  # Simulate real-time update every second
 
     def calculate_heart_rate(self):
         """Calculate heart rate from PPG data."""

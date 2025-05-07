@@ -56,9 +56,11 @@ class HeartRateDisplay(QWidget):
 
     def update_heart_rate(self, heart_rate):
         """Update the display with a new heart rate value"""
+        if abs(self.current_hr - heart_rate) < 2.0:
+            return
+
         self.current_hr = heart_rate
-        self.hr_label.setText(f"{heart_rate:.1f} BPM")
-        self.hr_bar.setValue(min(max(int(heart_rate), 50), 150))
+        self.hr_label.setText(f"{int(heart_rate)} BPM")
 
         # Update status text and color based on heart rate
         if heart_rate > 100:

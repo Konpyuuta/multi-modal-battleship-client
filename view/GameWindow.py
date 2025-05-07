@@ -97,16 +97,9 @@ class GameWindow(QMainWindow):
         grids_layout.addWidget(player_section)
         grids_layout.addWidget(opponent_section)
 
-        # Create heart rate displays layout
+        # Create heart rate display layout
         hr_layout = QHBoxLayout()
-
-        # Create heart rate displays
-        player_name = SocketData().get_name() or "You"
-        self.player_hr_display = HeartRateDisplay(player_name)
         self.opponent_hr_display = HeartRateDisplay("Opponent")
-
-        # Add heart rate displays to layout
-        hr_layout.addWidget(self.player_hr_display)
         hr_layout.addWidget(self.opponent_hr_display)
 
         # Add layouts to main layout
