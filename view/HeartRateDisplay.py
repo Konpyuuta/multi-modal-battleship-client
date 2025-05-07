@@ -1,4 +1,9 @@
-class SimpleHeartRateDisplay(QWidget):
+# HeartRateDisplay.py
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QFont, QColor
+
+class HeartRateDisplay(QWidget):
     """Simple widget for displaying heart rate"""
 
     def __init__(self, player_name, parent=None):
