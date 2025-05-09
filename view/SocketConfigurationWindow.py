@@ -54,7 +54,7 @@ class SocketConfigurationWindow(QMainWindow):
         self._name_field = self.create_input_field("Type username ...")
         self._name_field.setText(''.join(random.choice(string.ascii_letters) for _ in range(10)))
         self._ip_field = self.create_input_field("Type IP address ...")
-        self._ip_field.setText("192.168.1.6")
+        self._ip_field.setText("127.0.0.1")
         self._port_field = self.create_input_field("Type port number ...")
         self._port_field.setText("8080")
         layout.addWidget(name_label)

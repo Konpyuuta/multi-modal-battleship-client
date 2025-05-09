@@ -24,9 +24,7 @@ class SocketConnection:
 
 
     def connect(self):
-        print("Socket created")
         self._s.connect((self._ip, self._port))
-        print("Socket connected")
 
     def send_request(self, request):
         self._s.send(pickle.dumps(request))

@@ -19,6 +19,8 @@ class GameStateResponse(Response):
 
     _winner = None
 
+    _opponent_heart_rate = 0.0
+
     def __init__(self, player_matrix, opponent_matrix, is_turn, game_state, fetchGameRequest):
         self._player_matrix = player_matrix
         self._opponent_matrix = opponent_matrix
@@ -43,3 +45,9 @@ class GameStateResponse(Response):
 
     def get_winner(self):
         return self._winner
+
+    def set_heart_rate(self, heart_rate):
+        self._opponent_heart_rate = heart_rate
+
+    def get_heart_rate(self):
+        return self._opponent_heart_rate

@@ -24,70 +24,13 @@ from PyQt5.QtCore import *
 # Application command import
 from commands.StartGameCommand import StartGameCommand
 from commands.requests.StartGameRequest import StartGameRequest
+from commands.speech.StartSpeechModuleCommand import StartSpeechModuleCommand
+from hand_recognition.HandRecognition import HandRecognition
 from model.socket.SocketConnection import SocketConnection
 
 # Application view imports
 from view.SocketConfigurationWindow import SocketConfigurationWindow
 from view.StartWindow import StartWindow
-
-# HeartRate import
-from commands.heart_rate.EmotiBitClient import EmotiBitClient
-
-
-# ===== EMOTIBIT INITIALIZATION =====
-def initialize_emotibit():
-    """Initialize and start the EmotiBitClient"""
-    print("Initializing EmotiBit client...")
-
-    # Get the singleton instance
-    emotibit = EmotiBitClient.get_instance()
-
-    # Connect signal to log heart rate updates
-    emotibit.heart_rate_updated.connect(on_heart_rate_updated)
-
-    # Start the client (this starts the processing threads)
-    emotibit.start()
-
-    # Set up a timer to check if we're getting data
-    timer = QTimer()
-    timer.singleShot(10000, check_emotibit_data)
-
-    print("EmotiBit client initialized")
-
-    return emotibit
-
-
-def on_heart_rate_updated(heart_rate):
-    """Handle heart rate updates from EmotiBit"""
-    print(f"Heart rate update: {heart_rate:.1f} BPM")
-    # You can add UI updates or game effects here if needed
-
-
-def check_emotibit_data():
-    """Check if we're receiving data from EmotiBit"""
-    emotibit = EmotiBitClient.get_instance()
-    current_hr = emotibit.get_current_heart_rate()
-
-    if current_hr > 0:
-        print(f"EmotiBit check: Receiving heart rate data ({current_hr:.1f} BPM)")
-    else:
-        print("EmotiBit check: No heart rate data received. Check your EmotiBit connection.")
-        # Schedule another check
-        timer = QTimer()
-        timer.singleShot(10000, check_emotibit_data)
-
-
-def configure_socket_connection():
-    """Configure the socket connection for EmotiBit"""
-    from model.socket.SocketData import SocketData
-
-    socket_data = SocketData()
-    socket_data.set_ip_address("192.168.1.6")  # Replace with your server IP
-    socket_data.set_port(8080)  # Replace with your server port
-    socket_data._initialized = True
-
-    print(f"Socket configured: {socket_data.get_ip_address()}:{socket_data.get_port()}")
-    return socket_data
 
 # ===== APPLICATION INITIALIZATION =====
 
@@ -101,20 +44,13 @@ def configure_socket_connection():
 
 app = QApplication(sys.argv)
 
+'''speech = StartSpeechModuleCommand()
+t = threading.Thread(target=speech.execute())
+t.daemon = True
+t.start()'''
 
-# Configure socket before initializing EmotiBit
-socket_data = configure_socket_connection()
-# Get the singleton instance with socket configuration
-emotibit = EmotiBitClient.get_instance(socket_data)
-# Connect signal to log heart rate updates
-emotibit.heart_rate_updated.connect(on_heart_rate_updated)
-# Start the client (this starts the processing threads)
-emotibit.start()
-# Set up a timer to check if we're getting data
-timer = QTimer()
-timer.singleShot(10000, check_emotibit_data)
-print("EmotiBit client initialized")
-
+#hr = HandRecognition()
+#hr.capture()
 
 # Create a Qt widget, which will be our window.
 window = StartWindow()
