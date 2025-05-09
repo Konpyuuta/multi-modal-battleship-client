@@ -12,7 +12,7 @@ import speech_recognition as sr
 class SpeechAndGestureThread(QThread):
 
     _x_coordinates = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    _y_coordinates = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    _y_coordinates = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
 
     _coord_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7, 'i': 8, 'j': 9}
 
