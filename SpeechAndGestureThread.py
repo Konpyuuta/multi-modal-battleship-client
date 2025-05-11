@@ -36,9 +36,10 @@ class SpeechAndGestureThread(QThread):
             if self.fetch_coordinates():
                 print("Coordinates detected. Waiting for gesture...")
                 gesture = self.wait_for_gesture(timeout=5)
-                if gesture != 'Pinching':
+                print(f"Gesture: {gesture}")
+                if gesture == "Pinching":
                     col = int(self._coord_dict[self._coord[0]])
-                    row = int(self._coord[1])-1
+                    row = int(self._coord[1:])-1
                     self.command_confirmed.emit(col, row, gesture)
 
     def fetch_coordinates(self):
@@ -54,7 +55,7 @@ class SpeechAndGestureThread(QThread):
             except Exception:
                 return False
 
-    def wait_for_gesture(self, timeout=5):
+    def wait_for_gesture(self, timeout=12):
         import cv2
         import mediapipe as mp
         import time
@@ -72,12 +73,12 @@ class SpeechAndGestureThread(QThread):
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
                     gesture_name = self.classify_gesture(hand_landmarks, frame)
-                    if gesture_name:
+                    if gesture_name is not None:
                         cap.release()
                         return gesture_name
 
         cap.release()
-        return None
+        return gesture_name
 
     def classify_gesture(self, hand_landmarks, frame):
         # get landmark positions
@@ -107,6 +108,8 @@ class SpeechAndGestureThread(QThread):
             gesture = "Pinching"
         else:
             gesture = "Unknown"
+
+        return gesture
 
     def stop(self):
         self.running = False
