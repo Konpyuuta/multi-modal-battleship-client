@@ -55,6 +55,8 @@ class GameWindow(QMainWindow):
 
     _colors = ["yellow", "orange", "red"]
 
+    _is_turn = None
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle(ProjectConstants.PROJECT_NAME)
@@ -122,11 +124,12 @@ class GameWindow(QMainWindow):
         self.speech_thread.start()
 
     def on_command_confirmed(self, col, row, gesture):
-        print("Execute Move ..")
-        move_request = MoveRequest(RequestTypes.MOVE_REQUEST, SocketData().get_name(), row, col)
-        s = SocketConnection(SocketData().get_ip_address(), int(SocketData().get_port()))
-        s.connect()
-        s.send_request(move_request)
+        if self._is_turn:
+            print("Execute Move ..")
+            move_request = MoveRequest(RequestTypes.MOVE_REQUEST, SocketData().get_name(), row, col)
+            s = SocketConnection(SocketData().get_ip_address(), int(SocketData().get_port()))
+            s.connect()
+            s.send_request(move_request)
 
         # You can now run socket or any action based on this
 
@@ -136,6 +139,7 @@ class GameWindow(QMainWindow):
 
 
     def update_grids(self, player_matrix, opponent_matrix, is_turn, winner, heart_rate):
+        self._is_turn = is_turn
         color = "gray"
         if heart_rate >= 60.0 and heart_rate <= 70.0:
             color = "yellow"
