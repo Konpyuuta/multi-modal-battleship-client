@@ -37,7 +37,7 @@ class SpeechAndGestureThread(QThread):
                 print("Coordinates detected. Waiting for gesture...")
                 gesture = self.wait_for_gesture(timeout=5)
                 print(f"Gesture: {gesture}")
-                if gesture == "Pinching":
+                if gesture == "Thumbs Up":
                     col = int(self._coord_dict[self._coord[0]])
                     row = int(self._coord[1:])-1
                     self.command_confirmed.emit(col, row, gesture)
