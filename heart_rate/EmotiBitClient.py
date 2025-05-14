@@ -80,7 +80,7 @@ class EmotiBitClient(QObject):
     def start(self):
 
         # Start the correct heart rate calculation method
-        self.use_mock_hr = True
+        self.use_mock_hr = False
         if self.use_mock_hr:
             self.hr_calc_thread = threading.Thread(target=self.mock_heart_rate_loop)
             self.hr_calc_thread.daemon = True
@@ -192,15 +192,16 @@ class EmotiBitClient(QObject):
                         # Sanity check - HR should be between 40-180 BPM for most adults
                         if 40 <= hr_bpm <= 180:
                             self.latest_hr = hr_bpm
+                            HeartRate().set_heart_rate(hr_bpm)
                             print(f"Current heart rate: {hr_bpm:.1f} BPM")
 
-                            # Emit the heart rate update signal
-                            self.heart_rate_updated.emit(hr_bpm)
-
-                            # Send heart rate to server if connection exists and value changed significantly
-                            if self.socket_connection and abs(hr_bpm - self.last_sent_hr) >= self.hr_threshold:
-                                self.send_heart_rate_to_server(hr_bpm)
-                                self.last_sent_hr = hr_bpm
+                            # # Emit the heart rate update signal
+                            # self.heart_rate_updated.emit(hr_bpm)
+                            #
+                            # # Send heart rate to server if connection exists and value changed significantly
+                            # if self.socket_connection and abs(hr_bpm - self.last_sent_hr) >= self.hr_threshold:
+                            #     self.send_heart_rate_to_server(hr_bpm)
+                            #     self.last_sent_hr = hr_bpm
                 except Exception as e:
                     print(f"Error calculating heart rate: {e}")
 

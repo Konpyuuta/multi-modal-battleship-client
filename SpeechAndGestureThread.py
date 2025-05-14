@@ -8,6 +8,8 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 import speech_recognition as sr
 
+import pyttsx3
+
 
 class SpeechAndGestureThread(QThread):
 
@@ -35,6 +37,7 @@ class SpeechAndGestureThread(QThread):
         while self.running:
             if self.fetch_coordinates():
                 print("Coordinates detected. Waiting for gesture...")
+
                 gesture = self.wait_for_gesture(timeout=5)
                 print(f"Gesture: {gesture}")
                 if gesture == "Thumbs Up":
@@ -49,6 +52,9 @@ class SpeechAndGestureThread(QThread):
                 audio = self.recognizer.listen(source, timeout=7, phrase_time_limit=7)
                 text = self.recognizer.recognize_google(audio).lower()
                 print(f"Recognized speech: {text}")
+                engine = pyttsx3.init()
+                engine.say(text)
+                engine.runAndWait()
                 if text in self._coordinates:
                     self._coord = text
                 return text in self._coordinates
