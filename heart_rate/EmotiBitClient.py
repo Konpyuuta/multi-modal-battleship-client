@@ -11,11 +11,11 @@ from pythonosc import dispatcher
 from pythonosc import osc_server
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from commands.speech.StartSpeechModuleCommand import StartSpeechModuleCommand
+# from commands.speech.StartSpeechModuleCommand import StartSpeechModuleCommand
 # Import socket connection and heart rate request
 
 from heart_rate.HeartRate import HeartRate
-from model.socket.SocketConnection import SocketConnection
+# from model.socket.SocketConnection import SocketConnection
 from model.socket.SocketData import SocketData
 
 
@@ -78,7 +78,7 @@ class EmotiBitClient(QObject):
         print("EmotiBit client processor initialized")
 
     def start(self):
-
+        self.running = True
         # Start the correct heart rate calculation method
         self.use_mock_hr = False
         if self.use_mock_hr:
@@ -130,6 +130,7 @@ class EmotiBitClient(QObject):
         """Handle incoming green PPG data."""
         if args and len(args) > 0:
             self.ppg_green_buffer.append(args[0])
+            # print(f"Received PPG green data: {args[0]}")
             self.ppg_timestamps.append(time.time())
 
             # Keep buffer at defined size
@@ -161,7 +162,8 @@ class EmotiBitClient(QObject):
 
     def calculate_heart_rate(self):
         """Calculate heart rate from PPG data."""
-        min_data_points = self.sampling_rate * 4  # At least 4 seconds of data
+        min_data_points = 100  # At least 4 seconds of data
+        print('the calculate heart rate function is called')
 
         while self.running:
             # Check if we have enough data
@@ -169,6 +171,7 @@ class EmotiBitClient(QObject):
                 try:
                     # Get the signal as numpy array
                     green_signal = np.array(self.ppg_green_buffer[-min_data_points:])
+                    # print(f"Signal min: {np.min(green_signal)}, max: {np.max(green_signal)}, mean: {np.mean(green_signal)}")
 
                     # Normalize the signal
                     green_signal = (green_signal - np.mean(green_signal)) / np.std(green_signal)
@@ -180,6 +183,7 @@ class EmotiBitClient(QObject):
 
                     # Find peaks in the filtered signal
                     peaks, _ = signal.find_peaks(filtered_green, distance=int(self.sampling_rate * 0.5))
+                    # print(f"Found {len(peaks)} peaks in the signal")
 
                     if len(peaks) >= 2:
                         # Calculate heart rate from peak intervals
@@ -188,12 +192,15 @@ class EmotiBitClient(QObject):
 
                         # Convert to beats per minute
                         hr_bpm = 60 * self.sampling_rate / mean_interval
+                        # print(f"Calculated HR: {hr_bpm:.1f} BPM")
 
                         # Sanity check - HR should be between 40-180 BPM for most adults
                         if 40 <= hr_bpm <= 180:
                             self.latest_hr = hr_bpm
                             HeartRate().set_heart_rate(hr_bpm)
                             print(f"Current heart rate: {hr_bpm:.1f} BPM")
+                        # else:
+                            # print(f"Calculated HR {hr_bpm:.1f} BPM out of valid range (40-180 BPM)")
 
                             # # Emit the heart rate update signal
                             # self.heart_rate_updated.emit(hr_bpm)
@@ -235,3 +242,5 @@ class EmotiBitClient(QObject):
                 print("Cannot send heart rate: No server connection")
         except Exception as e:
             print(f"Error sending heart rate to server: {e}")
+
+
