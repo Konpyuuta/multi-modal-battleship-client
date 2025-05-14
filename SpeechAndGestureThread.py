@@ -10,6 +10,8 @@ import speech_recognition as sr
 
 import pyttsx3
 
+import time
+
 
 class SpeechAndGestureThread(QThread):
 
@@ -52,13 +54,15 @@ class SpeechAndGestureThread(QThread):
                 audio = self.recognizer.listen(source, timeout=7, phrase_time_limit=7)
                 text = self.recognizer.recognize_google(audio).lower()
                 print(f"Recognized speech: {text}")
-                engine = pyttsx3.init()
-                engine.say(text)
-                engine.runAndWait()
                 if text in self._coordinates:
                     self._coord = text
+                    engine = pyttsx3.init()
+                    engine.say(self._coord)
+                    # engine.runAndWait()
+                    time.sleep(1)
                 return text in self._coordinates
-            except Exception:
+            except Exception as x:
+                print(x)
                 return False
 
     def wait_for_gesture(self, timeout=12):
