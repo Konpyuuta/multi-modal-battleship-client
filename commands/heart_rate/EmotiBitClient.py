@@ -244,7 +244,7 @@ class EmotiBitClient(QObject):
                         # Sanity check - HR should be between 40-180 BPM for most adults
                         if 40 <= hr_bpm <= 180:
                             self.latest_hr = hr_bpm
-                            print(f"Current heart rate: {hr_bpm:.1f} BPM")
+                            # print(f"Current heart rate: {hr_bpm:.1f} BPM")
 
                             # Emit the heart rate update signal
                             self.heart_rate_updated.emit(hr_bpm)

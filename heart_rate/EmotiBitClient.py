@@ -198,7 +198,7 @@ class EmotiBitClient(QObject):
                         if 40 <= hr_bpm <= 180:
                             self.latest_hr = hr_bpm
                             HeartRate().set_heart_rate(hr_bpm)
-                            print(f"Current heart rate: {hr_bpm:.1f} BPM")
+                            # print(f"Current heart rate: {hr_bpm:.1f} BPM")
                         # else:
                             # print(f"Calculated HR {hr_bpm:.1f} BPM out of valid range (40-180 BPM)")
 
